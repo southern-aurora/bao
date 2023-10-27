@@ -1,0 +1,26 @@
+{
+  "name": "southern-aurora-bao",
+  "type": "module",
+  "module": "index.ts",
+  "version": "0.0.10",
+  "peerDependencies": {
+    "typescript": "^5.2.0"
+  },
+  "dependencies": {
+    "@paralleldrive/cuid2": "^2.2.2",
+    "@poech/camel-hump-under": "^1.1.0",
+    "ejs": "^3.1.9",
+    "redis": "^4.6.10",
+    "superjson": "^1.13.1",
+    "typia": "^5.0.0",
+    "walk-sync": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/ejs": "^3.1.2",
+    "@types/node": "^20.5.1",
+    "bun-types": "latest",
+    "ts-node": "^10.9.1",
+    "ts-patch": "^3.0.2",
+    "typescript": "^5.2.2"
+  }
+}

@@ -1,0 +1,1 @@
+import{_ as s,o as a,c as n,Q as l}from"./chunks/framework.815da712.js";const d=JSON.parse('{"title":"Cache","description":"","frontmatter":{},"headers":[],"relativePath":"docs/cache.md","filePath":"docs/cache.md"}'),o={name:"docs/cache.md"},p=l("",11),e=[p];function c(t,r,E,y,i,F){return a(),n("div",null,e)}const C=s(o,[["render",c]]);export{d as __pageData,C as default};

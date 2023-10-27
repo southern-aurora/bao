@@ -1,0 +1,23 @@
+["general"]
+mixins = [
+    "~/.co.toml",
+    "https://raw.githubusercontent.com/southern-aurora/bao-template/main/.co.toml",
+    "co:bun",
+]
+
+["publish:bao"]
+commands = ["publish:bao", "publ:bao", "p:b"]
+scripts = ['''
+    cd ./package/bao
+    && npm version patch
+    && npm publish --access public
+''']
+
+
+["publish:git"]
+commands = ["publish:git", "publ:git", "p:g"]
+scripts = ['''
+    git add --all
+    && git commit -m "update"
+    && git push
+''']

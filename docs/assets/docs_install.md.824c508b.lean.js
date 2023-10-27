@@ -1,0 +1,1 @@
+import{_ as s,o as a,c as o,Q as n}from"./chunks/framework.815da712.js";const h=JSON.parse('{"title":"安装","description":"","frontmatter":{},"headers":[],"relativePath":"docs/install.md","filePath":"docs/install.md"}'),l={name:"docs/install.md"},p=n("",20),e=[p];function t(r,c,i,y,E,d){return a(),o("div",null,e)}const b=s(l,[["render",t]]);export{h as __pageData,b as default};
