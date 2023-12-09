@@ -1,59 +1,19 @@
-import SuperJSON from "superjson";
-import type schema from "../../generate/schema";
-import { failCode } from "../../src/fail-code";
+import { failCode } from "./generate/src/fail-code";
+import type _ApiSchema from "./generate/generate/api-schema";
+import type _ApiParams from "./generate/generate/products/api-params";
 
-export function createClient(clientOptions: ClientOptions) {
-  const execute = async <Path extends keyof Schema["apiMethodsTypeSchema"]>(path: Path, data: Parameters<Schema["apiMethodsTypeSchema"][Path]["action"]>[0] | string, headers: Record<string, string | Array<string> | undefined> = {}): Promise<ExecuteResult<Path>> => {
-    const request = new Request(`${clientOptions.url}${path}`, {
-      method: "POST",
-      headers: new Headers({
-        "Content-Type": "application/json",
-        ...headers
-      }),
-      body: SuperJSON.stringify(data)
-    });
+export type ApiSchema = typeof _ApiSchema;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let result: any;
-    try {
-      console.warn(request);
+export type ApiParams = typeof _ApiParams;
 
-      const response = await fetch(request);
-      result = SuperJSON.parse(await response.text());
-    } catch (e) {
-      console.warn("[client] 请求失败，可能是网络原因", e);
-      result = {
-        success: false,
-        fail: {
-          code: "network-error",
-          message: failCode["network-error"](),
-          data: undefined
-        }
-      };
-    }
+export const FailCode = failCode;
 
-    return result;
-  };
+export type ExecuteParams<Path extends keyof ApiParams["params"]> = Awaited<ReturnType<ApiParams["params"][Path]>>;
 
-  return {
-    execute
-  };
-}
-
-type ClientOptions = {
-  url: string;
-  storage: StorageLike;
-};
-
-type StorageLike = {
-  getItem(key: string): string | null | Promise<string | null | undefined | "">;
-  setItem(key: string, value: string): void | Promise<void>;
-};
-
-export type ExecuteResult<Path extends keyof Schema["apiMethodsTypeSchema"]> =
+export type ExecuteResult<Path extends keyof ApiSchema["apiMethodsTypeSchema"]> =
   | {
       success: true;
-      data: Awaited<ReturnType<Schema["apiMethodsTypeSchema"][Path]["action"]>>;
+      data: Awaited<ReturnType<ApiSchema["apiMethodsTypeSchema"][Path]["action"]>>;
     }
   | {
       success: false;
@@ -65,7 +25,3 @@ export type Fail<FailCode extends keyof typeof failCode> = {
   message: string;
   data: Parameters<(typeof failCode)[FailCode]>[0];
 };
-
-export type Schema = typeof schema;
-
-export const FailCode = failCode;

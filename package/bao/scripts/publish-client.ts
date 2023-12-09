@@ -1,8 +1,35 @@
 /* eslint-disable no-console */
 import { cwd, platform } from "node:process";
+import { exec as nodeExec } from "node:child_process";
+import { removeDir } from "../util/remove-dir";
 import { join } from "node:path";
+import { copyFile } from "node:fs/promises";
 
 export async function publishClient() {
+  removeDir(join(cwd(), "package", "client", "dist"));
+  removeDir(join(cwd(), "package", "client", "generate"));
+
+  // 将项目中的文件生成对应的类型，并输出到 /package/client/generate 目录下
+  await new Promise((resolve) =>
+    nodeExec("bunx tsc --project tsconfig.client-generate.json", (e) => {
+      resolve(e);
+    })
+  );
+  await copyFile(join(cwd(), "src", "fail-code.ts"), join(cwd(), "package", "client", "generate", "src", "fail-code.ts"));
+
+  // 为 client 打包类型
+  await new Promise((resolve) =>
+    nodeExec("cd ./package/client && bunx tsc", (e) => {
+      resolve(e);
+    })
+  );
+
+  // build /src/client/index.ts to js
+  await Bun.build({
+    entrypoints: ["./package/client/index.ts"],
+    outdir: "./package/client"
+  });
+
   const root = join(cwd(), "package", "client");
 
   console.log("🧊 If there are no errors, please manual publish:");

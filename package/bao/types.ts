@@ -1,4 +1,5 @@
 import type { failCode } from "../../src/fail-code";
+export type { ExecuteResult } from "./kernel/execute";
 
 export type FailEnumerates = typeof failCode;
 

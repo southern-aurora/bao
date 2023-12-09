@@ -20,11 +20,11 @@ export async function useRedisClient() {
 
 export function defineNamespaceCache<Entity extends CacheEntity<unknown>>(key: string) {
   return {
-    async get(namespace: string) {
+    async get(namespace: string): Promise<Entity | undefined> {
       const redisClient = await useRedisClient();
       const res = await redisClient.get(`${key}:${namespace}`);
       if (res === null) return undefined;
-      return SuperJSON.parse(res);
+      return SuperJSON.parse<Entity>(res);
     },
     async set(namespace: string, value: Entity, ttl: number) {
       const redisClient = await useRedisClient();

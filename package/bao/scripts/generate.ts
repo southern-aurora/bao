@@ -4,7 +4,7 @@
 import { existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { cwd, exit, stdout } from "node:process";
-import { readdir, writeFile } from "node:fs/promises";
+import { readdir, unlink, writeFile } from "node:fs/promises";
 import { exec as nodeExec } from "node:child_process";
 import walkSync from "walk-sync";
 import ejs from "ejs";
@@ -32,16 +32,34 @@ export async function generateSchema() {
     hyphen: (str: string) => hyphen(str).replaceAll("_", "")
   };
 
-  //   if (existsSync(join(cwd(), 'generate', 'schema')) === false) {
-  //     const schemaTemplate = `
-  // export default {
-  //   apiMethodsSchema: {},
-  //   apiMethodsTypeSchema: {},
-  //   bootstrapSchema: {},
-  // }
-  //  `
-  //     await writeFile(join(cwd(), 'generate', 'schema.ts'), ejs.render(schemaTemplate, { utils }))
-  //   }
+  await unlink(join(cwd(), "generate", "api-schema.ts"));
+  await unlink(join(cwd(), "generate", "bootstrap-schema.ts"));
+  //
+  await writeFile(
+    join(cwd(), "generate", "api-schema.ts"),
+    ejs.render(
+      `
+  export default {
+    apiParams: {},
+    apiMethodsSchema: {},
+    apiMethodsTypeSchema: {},
+  }
+   `,
+      { utils }
+    )
+  );
+  //
+  await writeFile(
+    join(cwd(), "generate", "bootstrap-schema.ts"),
+    ejs.render(
+      `
+  export default {
+    bootstrapSchema: {},
+  }
+   `,
+      { utils }
+    )
+  );
 
   const apiPaths = await (async () => {
     return walkSync(join(cwd(), "src", "app"), {
@@ -72,16 +90,17 @@ export async function generateSchema() {
     utils
   };
 
-  // schema
-  const schemaTemplate = `/**
+  // api-schema
+  await writeFile(
+    join(cwd(), "generate", "api-schema.ts"),
+    ejs.render(
+      `
+/**
  * ⚠️This file is generated and modifications will be overwritten
  */
-
+ 
 // api
 <% for (const path of ${"apiPaths"}) { %>import type * as <%= utils.camel(path.slice(0, -3).replaceAll('/', '$')) %> from '${"../src/app"}/<%= path.slice(0, -3) %>'
-<% } %>
-// bootstrap
-<% for (const path of ${"bootstrapPaths"}) { %>import <%= utils.camel(path.slice(0, -3).replaceAll('/', '$') + '${"$bootstrap"}') %> from '${"../src/bootstrap"}/<%= path.slice(0, -3) %>'
 <% } %>
 // api methods type<% for (const path in apiMethods) { %>
 import type * as <%= utils.camel(path.slice(0, -${4}).replaceAll('/', '$')) %> from '../src/app/<%= path %>'
@@ -100,12 +119,34 @@ export default {
     <% for (const path2 of apiMethods[path]) { %>'<%= utils.hyphen(path.slice(0, -${4})) %>/<%= utils.hyphen(path2) %>': undefined as unknown as typeof <%= utils.camel(path.slice(0, -${4}).replaceAll('/', '$')) %>['<%= path2 %>'],
     <% } %><% } %>
   },
+}
+ `,
+      templateVars
+    )
+  );
+
+  // bootstrap-schema
+  await writeFile(
+    join(cwd(), "generate", "bootstrap-schema.ts"),
+    ejs.render(
+      `
+/**
+ * ⚠️This file is generated and modifications will be overwritten
+ */
+
+// bootstrap
+<% for (const path of ${"bootstrapPaths"}) { %>import <%= utils.camel(path.slice(0, -3).replaceAll('/', '$') + '${"$bootstrap"}') %> from '${"../src/bootstrap"}/<%= path.slice(0, -3) %>'
+<% } %>
+ 
+export default {
   ${"bootstrapSchema"}: {<% for (const path of ${"bootstrapPaths"}) { %>
     '<%= utils.hyphen(path.slice(0, -${3})) %>': <%= utils.camel(path.slice(0, -3).replaceAll('/', '$') + '${"$bootstrap"}') %>,<% } %>
   },
 }
-`;
-  await writeFile(join(cwd(), "generate", "schema.ts"), ejs.render(schemaTemplate, templateVars));
+ `,
+      templateVars
+    )
+  );
 
   // api
   const apiParamsTemplate = `/**
@@ -134,31 +175,30 @@ export default {
   // await unlink(join(cwd(), 'generate', 'raw', 'api-params.ts'))
 }
 
-async function generateClient() {
-  const root = join(cwd(), "package", "client");
+// async function generateClient() {
+//   const root = join(cwd(), "package", "client");
 
-  removeDir(join(root, "package"));
-  removeDir(join(root, "dist"));
+//   removeDir(join(root, "package"));
+//   removeDir(join(root, "dist"));
 
-  await new Promise((resolve) =>
-    nodeExec("cd ./package/client && bunx tsc --outDir ./dist", (e) => {
-      resolve(e);
-    })
-  );
+//   await new Promise((resolve) =>
+//     nodeExec("cd ./package/client && bunx tsc --outDir ./dist", (e) => {
+//       resolve(e);
+//     })
+//   );
 
-  // build /src/client/index.ts to js
-  await Bun.build({
-    entrypoints: ["./package/client/index.ts"],
-    outdir: "./package/client/dist/package/client"
-  });
+//   // build /src/client/index.ts to js
+//   await Bun.build({
+//     entrypoints: ["./package/client/index.ts"],
+//     outdir: "./package/client/dist/package/client"
+//   });
 
-  removeDir(join(root, "dist", "package"), [join(root, "dist", "package", "client")]);
-  removeDir(join(root, "dist", "src"), [join(root, "dist", "src", "fail-code.d.ts")]);
-  removeDir(join(root, "dist"), [join(root, "dist", "generate"), join(root, "dist", "package"), join(root, "dist", "src")]);
-}
+//   removeDir(join(root, "dist", "package"), [join(root, "dist", "package", "client")]);
+//   removeDir(join(root, "dist", "src"), [join(root, "dist", "src", "fail-code.d.ts")]);
+//   removeDir(join(root, "dist"), [join(root, "dist", "generate"), join(root, "dist", "package"), join(root, "dist", "src")]);
+// }
 
 await generateSchema();
-await generateClient();
 
 stdout.write("\r");
 stdout.clearLine(1);

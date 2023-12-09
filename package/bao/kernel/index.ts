@@ -1,5 +1,5 @@
 import { configFramework } from "..";
-import schema from "../../../src/../generate/schema";
+import schema from "../../../src/../generate/bootstrap-schema";
 import { logger } from "../../../src/logger";
 import { _sortMiddleware } from "./middleware";
 import type { _executeHttpServer } from "./execute-http-server";

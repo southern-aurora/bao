@@ -13,6 +13,19 @@ scripts = ['''
     && npm publish --access public
 ''']
 
+["publish:docker"]
+commands = ["publish:docker", "publ:docker", "p:d"]
+scripts = [
+    '''
+    <% var now = day().format('YYYY-MM-DD-T-HH-mm-ss') %>
+    cd ./package/bao-docker
+    && docker build -t kecream/bao:v1 -t kecream/bao:<%= now %> -t kecream/bao:latest .
+    && docker push kecream/bao:latest
+    && docker push kecream/bao:v1
+    && docker push kecream/bao:<%= now %>
+''',
+]
+
 
 ["publish:git"]
 commands = ["publish:git", "publ:git", "p:g"]

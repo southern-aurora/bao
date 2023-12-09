@@ -3,18 +3,16 @@
   "type": "module",
   "module": "index.ts",
   "scripts": {
-    "postinstall": "ts-patch install"
+    "postinstall": "ts-patch install",
+    "tsc": "tsc"
   },
-  "peerDependencies": {
-    "typescript": "^5.2.0"
-  },
+  "peerDependencies": {},
   "trustedDependencies": [],
   "dependencies": {
     "client": "file:./package/client",
     "@types/node": "^20.5.1",
     "@paralleldrive/cuid2": "^2.2.2",
-    "southern-aurora-bao": "file:./package/bao",
-    "tsc": "^2.0.4"
+    "southern-aurora-bao": "file:./package/bao"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.7.5",

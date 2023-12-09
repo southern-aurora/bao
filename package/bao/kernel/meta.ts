@@ -1,5 +1,5 @@
 import type { Meta } from "../../../src/meta";
-import schema from "../../../generate/schema";
+import schema from "../../../generate/api-schema";
 
 export async function useMeta(path: string): Promise<Meta> {
   const api = schema.apiMethodsSchema[path as keyof (typeof schema)["apiMethodsTypeSchema"]]();

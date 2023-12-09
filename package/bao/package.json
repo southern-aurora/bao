@@ -2,7 +2,7 @@
   "name": "southern-aurora-bao",
   "type": "module",
   "module": "index.ts",
-  "version": "0.0.10",
+  "version": "0.0.28",
   "peerDependencies": {
     "typescript": "^5.2.0"
   },

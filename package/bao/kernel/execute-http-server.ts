@@ -1,7 +1,7 @@
 import { createId } from "@paralleldrive/cuid2";
 import { _afterHTTPRequestMiddlewares, _beforeHTTPResponseMiddlewares, configFramework } from "..";
 import { SuperJSON } from "superjson";
-import schema from "../../../src/../generate/schema";
+import schema from "../../../src/../generate/api-schema";
 import { logger } from "../../../src/logger";
 import { failCode } from "../../../src/fail-code";
 import type { HTTPRequest, HTTPResponse } from "..";
@@ -22,7 +22,7 @@ export async function _executeHttpServer() {
       const ip = (request.headers.get("x-forwarded-for") as string | undefined)?.split(",")[0] ?? "0.0.0.0";
       const headers = request.headers;
 
-      logger.log(`\n🧊 --- Request In ---\n🧊 - Method: ${request.method}\n🧊 - ContextId: ${contextid}\n🧊 - URL: ${fullurl.pathname}\n🧊 - Headers: ${JSON.stringify(request.headers.toJSON())}`);
+      logger.log(`\n🧊 --- Request In ---\n- Method: ${request.method}\n- ContextId: ${contextid}\n- URL: ${fullurl.pathname}\n- Headers: ${JSON.stringify(request.headers.toJSON())}`);
 
       const response: HTTPResponse = {
         body: "",
@@ -78,10 +78,10 @@ export async function _executeHttpServer() {
             }
           });
 
-          logger.log("done.");
-          logger.log(`\n🧊 --- Response Info ---\n🧊 - Code: ${response.status}\n🧊 - Headers: ${JSON.stringify(response.headers)}\n`);
+          logger.log(`🧊 --- Response Info ---\n- Code: ${response.status}\n- Headers: ${JSON.stringify(response.headers)}`);
           logger.log(`🧊 --- Response Body ---\n${response.body || "no body"}`);
-          logger.log("🧊 --- Response Out ---\n");
+          logger.log("🧊 --- Response Out ---");
+          logger.log("- Execution completed on " + new Date().toLocaleString());
 
           return new Response(response.body, response);
         }
@@ -94,7 +94,6 @@ export async function _executeHttpServer() {
 
         const rawbody = await request.text();
         logger.log(`🧊 --- Request Body ---\n${rawbody || "no body"}`);
-        logger.log("🧊 --- Request Begin ---");
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let params: any;
@@ -137,9 +136,10 @@ export async function _executeHttpServer() {
         response.body = SuperJSON.stringify(result);
       }
 
-      logger.log(`🧊 --- Response Info ---\n🧊 - Code: ${response.status}\n🧊 - Headers: ${JSON.stringify(response.headers)}\n`);
+      logger.log(`🧊 --- Response Info ---\n- Code: ${response.status}\n- Headers: ${JSON.stringify(response.headers)}`);
       logger.log(`🧊 --- Response Body ---\n${response.body || "no body"}`);
-      logger.log("🧊 --- Response Out ---\n");
+      logger.log("🧊 --- Response Out ---");
+      logger.log("- Execution completed on " + new Date().toLocaleString());
 
       return new Response(response.body, response);
     }

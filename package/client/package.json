@@ -2,8 +2,11 @@
   "name": "bao-template-client",
   "type": "module",
   "version": "18.0.0",
-  "module": "./dist/package/client/index.js",
-  "types": "./dist/package/client/index.d.ts",
+  "module": "./index.js",
+  "types": "./index.d.ts",
+  "scripts": {
+    "tsc": "tsc"
+  },
   "files": [
     "dist"
   ],
@@ -11,7 +14,10 @@
     "typescript": "^5.2.0"
   },
   "dependencies": {
+    "typia": "^5.0.0",
     "superjson": "^1.13.3"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "typescript": "^5.2.0"
+  }
 }

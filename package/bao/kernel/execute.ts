@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createId } from "@paralleldrive/cuid2";
-import schema from "../../../src/../generate/schema";
+import schema from "../../../src/../generate/api-schema";
 import type { Context } from "../../../src/context";
 import { failCode } from "../../../src/fail-code";
 import type { FrameworkContext } from "../kernel/context";

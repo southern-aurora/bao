@@ -1,4 +1,4 @@
-import cuid from "cuid";
+import { createId } from "@paralleldrive/cuid2";
 import type { Context } from "../../../src/context";
 import type { FrameworkHTTPDetail } from "./context";
 
@@ -26,7 +26,7 @@ export const _beforeHTTPResponseMiddlewares: Array<{
 export function useMiddleware(index: number) {
   return {
     onBeforeExecute(middleware: BeforeExecute) {
-      const id = cuid();
+      const id = createId();
       _beforeExecuteMiddlewares.push({ id, index, middleware });
       return () =>
         _beforeExecuteMiddlewares.splice(
@@ -35,7 +35,7 @@ export function useMiddleware(index: number) {
         );
     },
     onAfterExecute(middleware: AfterExecute) {
-      const id = cuid();
+      const id = createId();
       _afterExecuteMiddlewares.push({ id, index, middleware });
       return () =>
         _afterExecuteMiddlewares.splice(
@@ -44,7 +44,7 @@ export function useMiddleware(index: number) {
         );
     },
     onAfterHTTPRequest(middleware: AfterHTTPRequestMiddleware) {
-      const id = cuid();
+      const id = createId();
       _afterHTTPRequestMiddlewares.push({ id, index, middleware });
       return () =>
         _afterHTTPRequestMiddlewares.splice(
@@ -53,7 +53,7 @@ export function useMiddleware(index: number) {
         );
     },
     onBeforeHTTPResponse(middleware: BeforeHTTPResponseMiddleware) {
-      const id = cuid();
+      const id = createId();
       _beforeHTTPResponseMiddlewares.push({ id, index, middleware });
       return () =>
         _beforeHTTPResponseMiddlewares.splice(

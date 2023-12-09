@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
-    "rootDir": "../..",
-    "lib": ["ESNext"],
+    "lib": [
+      "ESNext"
+    ],
     "module": "esnext",
     "target": "esnext",
     "moduleResolution": "bundler",
@@ -22,6 +23,6 @@
     ]
   },
   "include": [
-    "../../**/*"
+    "./**/*"
   ]
 }
