@@ -2,7 +2,7 @@ FROM debian:12-slim
 
 WORKDIR /opt/src/app
 
-ENV BUN_VERSION="1.0.15"
+ENV BUN_VERSION="1.0.19"
 ENV CO_VERSION="2.3.0"
 ENV NODE_VERSION="20.8.0"
 ENV NVM_DIR="/root/.nvm"

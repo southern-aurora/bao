@@ -8,8 +8,9 @@ export function hanldeCatchError(error: any): ExecuteResult<any> {
   else logger.error(error);
   logger.error("\nError Data: " + JSON.stringify(error));
 
-  // If it is not FailError, it is considered an internal server error that should not be exposed
   if (error.name !== "FailError") {
+    // If it is not FailError, it is considered an internal server error that should not be exposed
+    logger.error(`FailCode: internal-server-error`);
     return {
       success: false,
       fail: {
@@ -18,14 +19,15 @@ export function hanldeCatchError(error: any): ExecuteResult<any> {
         data: undefined
       }
     };
+  } else {
+    logger.error(`FailCode: ${error.code}`);
+    return {
+      success: false,
+      fail: {
+        code: error.code,
+        message: error.message,
+        data: error.data
+      }
+    };
   }
-
-  return {
-    success: false,
-    fail: {
-      code: error.code,
-      message: error.message,
-      data: error.data
-    }
-  };
 }

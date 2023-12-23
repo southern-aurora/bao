@@ -12,6 +12,7 @@ export async function _executeHttpServer() {
   process.on("uncaughtException", (error) => {
     logger.error("Error caught in uncaughtException event:");
     logger.error(error);
+    process.exit(1);
   });
 
   const server = Bun.serve({
