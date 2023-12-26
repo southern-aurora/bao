@@ -9,7 +9,6 @@ import { exec as nodeExec } from "node:child_process";
 import walkSync from "walk-sync";
 import ejs from "ejs";
 import { camel, hyphen } from "@poech/camel-hump-under";
-import { logger } from "../../../src/logger";
 import { removeDir } from "../util/remove-dir";
 
 stdout.write("- Bao Generating..");
@@ -202,6 +201,6 @@ await generateSchema();
 
 stdout.write("\r");
 stdout.clearLine(1);
-logger.log("✅ Bao Generated!");
+console.log("✅ Bao Generated!");
 
 exit(0);

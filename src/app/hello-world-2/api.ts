@@ -1,4 +1,4 @@
-import { defineApi, defineFail } from "southern-aurora-bao";
+import { defineApi, defineFail, useLogger } from "southern-aurora-bao";
 
 export const say = defineApi({
   meta: {
@@ -11,6 +11,9 @@ export const say = defineApi({
     context
   ) {
     const message = `hello world! (by ${params.by})`;
+
+    const logger = useLogger(context.executeId);
+    logger.debug("你好你好你好");
 
     if (!params.by) {
       throw defineFail("business-fail", 'You need to include "by" in data.');

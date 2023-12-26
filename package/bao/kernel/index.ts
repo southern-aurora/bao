@@ -1,12 +1,12 @@
 import { configFramework } from "..";
 import schema from "../../../src/../generate/bootstrap-schema";
-import { logger } from "../../../src/logger";
 import { _sortMiddleware } from "./middleware";
 import type { _executeHttpServer } from "./execute-http-server";
 import { _execute } from "./execute";
 
 export async function createBaoApp() {
-  logger.log(`🧊 Framework starting on "${configFramework.cwd}"`);
+  // eslint-disable-next-line no-console
+  console.log(`🧊 Framework starting on "${configFramework.cwd}"`);
 
   const bootstraps: Array<Promise<void>> = [];
   for (const bootstrapName in schema.bootstrapSchema) {

@@ -1,9 +1,9 @@
 import type { URL } from "node:url";
-import type { HTTPResponse } from "..";
+import type { ExecuteId, HTTPResponse } from "..";
 
 export type FrameworkContext = {
   path: string;
-  contextId: string;
+  executeId: ExecuteId;
   headers: Headers;
   /**
    * Additional information about the request
@@ -15,7 +15,7 @@ export type FrameworkContext = {
 
 export type FrameworkHTTPDetail = {
   path: string;
-  contextid: string;
+  executeId: ExecuteId;
   fullurl: URL;
   ip: string;
   request: Request;

@@ -44,6 +44,7 @@ module.exports = {
         "@typescript-eslint/triple-slash-reference": "off",
         "@typescript-eslint/strict-boolean-expressions": "off",
         "@typescript-eslint/explicit-function-return-type": "off",
+        "@typescript-eslint/no-unnecessary-type-assertion": "off",
         "@typescript-eslint/consistent-type-definitions": ["error", "type"],
         "@typescript-eslint/no-explicit-any": ["error", { "ignoreRestArgs": false }],
         "@typescript-eslint/array-type": ["warn", { "default": "generic", "readonly": "generic" }],

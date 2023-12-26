@@ -1,29 +1,43 @@
 import { createId } from "@paralleldrive/cuid2";
-import { _afterHTTPRequestMiddlewares, _beforeHTTPResponseMiddlewares, configFramework } from "..";
+import { _afterHTTPRequestMiddlewares, _beforeHTTPResponseMiddlewares, configFramework, loggerPushTags, loggerSubmit, useLogger, loggerSubmitAll, runtime } from "..";
 import { SuperJSON } from "superjson";
 import schema from "../../../src/../generate/api-schema";
-import { logger } from "../../../src/logger";
 import { failCode } from "../../../src/fail-code";
-import type { HTTPRequest, HTTPResponse } from "..";
+import type { ExecuteId, HTTPRequest, HTTPResponse } from "..";
 import { hanldeCatchError } from "../util/handle-catch-error";
 import { _execute } from "./execute";
+import process, { exit } from "node:process";
 
 export async function _executeHttpServer() {
-  process.on("uncaughtException", (error) => {
-    logger.error("Error caught in uncaughtException event:");
-    logger.error(error);
-    process.exit(1);
+  // If an unexpected error occurs, exit the process.
+  // For modern production environments such as Serverless, Kubernetes, or Docker Compose:
+  // The process will automatically restart after exiting.
+  // This helps prevent unexpected errors from contaminating the entire application and causing subsequent requests to fail intermittently.
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  process.on("uncaughtException", async (error) => {
+    const logger = useLogger("global");
+    logger.error("Error caught in uncaughtException event:", error);
+    await loggerSubmitAll();
+    exit(1);
   });
 
   const server = Bun.serve({
     port: configFramework.port,
     async fetch(request: HTTPRequest) {
       const fullurl = new URL(request.url, `http://${request.headers.get("host") ?? "localhost"}`);
-      const contextid = (request.headers.get("x-scf-request-id") as string) ?? createId();
+      const executeId = `exec#${createId()}` as ExecuteId;
+      runtime.httpServer.executeIds.add(executeId);
       const ip = (request.headers.get("x-forwarded-for") as string | undefined)?.split(",")[0] ?? "0.0.0.0";
       const headers = request.headers;
 
-      logger.log(`\n🧊 --- Request In ---\n- Method: ${request.method}\n- ContextId: ${contextid}\n- URL: ${fullurl.pathname}\n- Headers: ${JSON.stringify(request.headers.toJSON())}`);
+      loggerPushTags(executeId, {
+        from: "http-server",
+        url: fullurl.pathname,
+        ip,
+        method: request.method,
+        requestHeaders: request.headers.toJSON(),
+        timein: new Date().getDate()
+      });
 
       const response: HTTPResponse = {
         body: "",
@@ -39,6 +53,9 @@ export async function _executeHttpServer() {
       try {
         // Process OPTIONS pre inspection requests
         if (request.method === "OPTIONS") {
+          await loggerSubmit(executeId);
+          runtime.httpServer.executeIds.delete(executeId);
+
           return new Response("", {
             headers: {
               "Access-Control-Allow-Methods": configFramework.corsAllowMethods ?? "*",
@@ -59,7 +76,7 @@ export async function _executeHttpServer() {
         const detail = {
           path: pathstr,
           ip,
-          contextid,
+          executeId,
           fullurl,
           request,
           response
@@ -68,9 +85,11 @@ export async function _executeHttpServer() {
         // Special processing: do not run middleware when encountering 404 and return quickly
         if (!(pathstr in schema.apiParams.params)) {
           const rawbody = await request.text();
-          logger.log(`🧊 --- Request Body ---\n${rawbody || "no body"}`);
-          logger.log("🧊 --- Execute ---");
+          loggerPushTags(executeId, {
+            body: rawbody || "no body"
+          });
           response.body = SuperJSON.stringify({
+            executeId,
             success: false,
             fail: {
               code: "not-found",
@@ -79,10 +98,14 @@ export async function _executeHttpServer() {
             }
           });
 
-          logger.log(`🧊 --- Response Info ---\n- Code: ${response.status}\n- Headers: ${JSON.stringify(response.headers)}`);
-          logger.log(`🧊 --- Response Body ---\n${response.body || "no body"}`);
-          logger.log("🧊 --- Response Out ---");
-          logger.log("- Execution completed on " + new Date().toLocaleString());
+          loggerPushTags(executeId, {
+            status: response.status,
+            responseHeaders: response.headers,
+            timeout: new Date().getTime()
+          });
+
+          await loggerSubmit(executeId);
+          runtime.httpServer.executeIds.delete(executeId);
 
           return new Response(response.body, response);
         }
@@ -94,7 +117,9 @@ export async function _executeHttpServer() {
         }
 
         const rawbody = await request.text();
-        logger.log(`🧊 --- Request Body ---\n${rawbody || "no body"}`);
+        loggerPushTags(executeId, {
+          body: rawbody || "no body"
+        });
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let params: any;
@@ -106,15 +131,21 @@ export async function _executeHttpServer() {
           try {
             params = JSON.parse(rawbody);
           } catch (error) {
+            const logger = useLogger(executeId);
             // body is not json, the content is not empty, but the content is not in a valid JSON or SuperJSON format. The original content value can be retrieved via request.text()
             logger.log("TIP: body is not json, the content is not empty, but the content is not in a valid JSON or SuperJSON format. The original content value can be retrieved via request.text()");
             params = undefined;
           }
         }
 
+        loggerPushTags(executeId, {
+          params
+        });
+
         const result = await _execute(pathstr, params, headers, {
-          contextId: contextid,
-          detail
+          executeId,
+          detail,
+          disableLoggerAutoSubmit: true
         });
 
         if (response.body === "") {
@@ -133,20 +164,26 @@ export async function _executeHttpServer() {
 
         response.body = middlewareResponse.value;
       } catch (error) {
-        const result = hanldeCatchError(error);
+        const result = hanldeCatchError(error, executeId);
         response.body = SuperJSON.stringify(result);
       }
 
-      logger.log(`🧊 --- Response Info ---\n- Code: ${response.status}\n- Headers: ${JSON.stringify(response.headers)}`);
-      logger.log(`🧊 --- Response Body ---\n${response.body || "no body"}`);
-      logger.log("🧊 --- Response Out ---");
-      logger.log("- Execution completed on " + new Date().toLocaleString());
+      loggerPushTags(executeId, {
+        status: response.status,
+        responseHeaders: response.headers,
+        body: response.body || "no body",
+        timeout: new Date().getTime()
+      });
+
+      await loggerSubmit(executeId);
+      runtime.httpServer.executeIds.delete(executeId);
 
       return new Response(response.body, response);
     }
   });
 
-  logger.log(`🧊 Http server started at :${configFramework.port}`);
+  // eslint-disable-next-line no-console
+  console.log(`🧊 Http server started at :`, configFramework.port);
 
   return {
     server,

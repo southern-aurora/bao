@@ -1,9 +1,11 @@
 import type { ExecuteResult } from "../kernel/execute";
-import { logger } from "../../../src/logger";
 import { failCode } from "../../../src/fail-code";
+import { useLogger, type ExecuteId } from "..";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function hanldeCatchError(error: any): ExecuteResult<any> {
+export function hanldeCatchError(error: any, executeId: ExecuteId): ExecuteResult<any> {
+  const logger = useLogger(executeId);
+
   if (error.stack) logger.error(error.stack);
   else logger.error(error);
   logger.error("\nError Data: " + JSON.stringify(error));
@@ -11,7 +13,9 @@ export function hanldeCatchError(error: any): ExecuteResult<any> {
   if (error.name !== "FailError") {
     // If it is not FailError, it is considered an internal server error that should not be exposed
     logger.error(`FailCode: internal-server-error`);
+
     return {
+      executeId,
       success: false,
       fail: {
         code: "internal-server-error",
@@ -22,6 +26,7 @@ export function hanldeCatchError(error: any): ExecuteResult<any> {
   } else {
     logger.error(`FailCode: ${error.code}`);
     return {
+      executeId,
       success: false,
       fail: {
         code: error.code,
